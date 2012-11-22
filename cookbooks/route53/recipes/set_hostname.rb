@@ -19,11 +19,7 @@
 
 include_recipe 'route53'
 
-# aws = data_bag_item("aws", "route53")
-aws = node[:aws]
-
-if aws && aws[:aws_access_key_id] && aws[:aws_secret_access_key] && node[:cloud]
-
+if node.route53[:aws][:access_key] && node.route53[:aws][:secret_key] && node[:cloud]
   node_name   = (node[:route53][:node_name] || node.name).to_s
 
   hostname    =  node_name.gsub(/[^a-zA-Z0-9\-]/, '-')
@@ -39,12 +35,12 @@ if aws && aws[:aws_access_key_id] && aws[:aws_secret_access_key] && node[:cloud]
     ttl           node[:route53][:ttl]
 
     action        :update
-    aws_access_key_id     aws[:aws_access_key_id]
-    aws_secret_access_key aws[:aws_secret_access_key]
+    aws_access_key_id     node.route53[:aws][:access_key]
+    aws_secret_access_key node.route53[:aws][:secret_key]
   end
   node.set[:route53][:fqdn] = fqdn
 elsif not node[:cloud]
   Chef::Log.warn("Cannot set hostname, because the node[:cloud] attributes aren't set. On a cloud machine, sometimes this doesn't happen until the second run.")
 else
-  Chef::Log.warn("Cannot set hostname, because we have no AWS credentials: set node[:aws][:aws_access_key_id] and node[:aws][:aws_secret_access_key]")
+  Chef::Log.warn("Cannot set hostname, because we have no AWS credentials: set data bag aws['route53']['aws_access_key_id'] and aws['route53']['aws_access_key_id']")
 end
